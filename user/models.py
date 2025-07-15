@@ -6,6 +6,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 
+# noinspection PySimplifyBooleanCheck
 class UserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
 
