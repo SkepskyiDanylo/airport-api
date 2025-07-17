@@ -1,13 +1,18 @@
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from drf_spectacular.views import SpectacularYAMLAPIView, SpectacularJSONAPIView, SpectacularSwaggerView, \
+from drf_spectacular.views import (
+    SpectacularYAMLAPIView,
+    SpectacularJSONAPIView,
+    SpectacularSwaggerView,
     SpectacularRedocView
+)
 
 from airport_api import settings
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/v1/", include("airport.urls", namespace="airport")),
     path("api/v1/user/", include("user.urls", namespace="user")),
 ]
 
