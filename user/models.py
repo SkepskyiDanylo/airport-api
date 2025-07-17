@@ -1,3 +1,5 @@
+import uuid
+
 from attr import validators
 from django.contrib.auth.models import (
     AbstractUser,
@@ -44,6 +46,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
     email = models.EmailField(_("email address"), unique=True)
     balance = models.DecimalField(
