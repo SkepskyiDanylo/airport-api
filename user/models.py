@@ -60,3 +60,22 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+
+class Transaction(models.Model):
+    STATUS_CHOICES = (
+        ("SUCCESS", _("success")),
+        ("FAILURE", _("failure")),
+    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    email = models.EmailField()
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+    )
+
+    def __str__(self):
+        return f"{self.amount} {self.status}"
