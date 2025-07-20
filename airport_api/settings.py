@@ -13,6 +13,7 @@ DEBUG = os.getenv("DEBUG").lower() == "true"
 STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
+SITE_ID = 1
 
 ALLOWED_HOSTS = []
 
@@ -36,7 +37,21 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "airport",
     "user",
+
+    "django.contrib.sites",
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.apple',
+
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
 ]
+
+REST_USE_JWT = True
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -47,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "airport_api.urls"
@@ -101,7 +117,8 @@ REST_FRAMEWORK = {
         "login": "10/minute",
         "user": "200/minute",
         "refresh": "100/minute",
-    }
+    },
+    "TOKEN_MODEL": None
 }
 
 
@@ -141,3 +158,28 @@ AUTH_USER_MODEL = "user.User"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": os.getenv("GOOGLE_OAUTH2_CLIENT_ID"),
+            "secret": os.getenv("GOOGLE_SECRET"),
+            "key": os.getenv("GOOGLE_OAUTH2_KEY"),
+        }
+    },
+    "apple": {
+        "APP": {
+            "client_id": os.getenv("APPLE_CLIENT_ID"),
+            "key": os.getenv("APPLE_KEY"),
+            "secret": os.getenv("APPLE_APP_SECRET"),
+            "certificate_key": os.getenv("APPLE_CERTIFICATE_KEY"),
+        },
+        "SERVICES": {
+            "client_id": os.getenv("APPLE_CLIENT_ID"),
+            "team_id": os.getenv("APPLE_TEAM_ID"),
+            "key_id": os.getenv("APPLE_KEY_ID"),
+            "private_key": os.getenv("APPLE_PRIVATE_KEY"),
+        }
+    }
+}
+
+SOCIALACCOUNT_ADAPTER = "accounts.adapters.MySocialAccountAdapter"

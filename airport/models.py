@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import pytz
@@ -20,6 +21,11 @@ class AirplaneType(BaseModel):
 
     def __str__(self):
         return self.name
+
+def airplane_image(instance: "Airplane", filename: str) -> str:
+    ext = filename.split(".")[-1].lower()
+    name = f"{instance.manufacturer}-{instance.model}-{uuid.uuid4()}.{ext}"
+    return os.path.join("airplanes", name)
 
 
 class Airplane(BaseModel):
@@ -58,12 +64,13 @@ class Airplane(BaseModel):
             MinValueValidator(1),
         ]
     )
+    image = models.ImageField(upload_to=airplane_image, null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.manufacturer} {self.model}: {self.tail_number}"
 
     @property
-    def total_seats(self):
+    def total_seats(self) -> int:
         return self.rows * self.seats_in_row
 
 

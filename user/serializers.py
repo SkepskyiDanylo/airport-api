@@ -14,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "password",
+            "balance",
             "is_staff",
             "is_superuser",
         )
@@ -23,7 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
                 "style": {"input_type": "password"},
             }
         }
-        read_only_fields = ("id", "is_staff", "is_superuser")
+        read_only_fields = ("id", "is_staff", "is_superuser", "balance")
 
     def validate_password(self, value):
         try:
