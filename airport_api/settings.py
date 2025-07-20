@@ -163,15 +163,15 @@ SOCIALACCOUNT_PROVIDERS = {
         "APP": {
             "client_id": os.getenv("GOOGLE_OAUTH2_CLIENT_ID"),
             "secret": os.getenv("GOOGLE_SECRET"),
-            "key": os.getenv("GOOGLE_OAUTH2_KEY"),
+            "key": "",
         }
     },
     "apple": {
         "APP": {
             "client_id": os.getenv("APPLE_CLIENT_ID"),
-            "key": os.getenv("APPLE_KEY"),
-            "secret": os.getenv("APPLE_APP_SECRET"),
-            "certificate_key": os.getenv("APPLE_CERTIFICATE_KEY"),
+            "key": "",
+            "secret": "",
+            "certificate_key": "",
         },
         "SERVICES": {
             "client_id": os.getenv("APPLE_CLIENT_ID"),
