@@ -6,7 +6,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
-from user.views import UserRegister, UserViewSet, MyProfileView, UserDeposit, StripeWebhookView
+from user.views import UserRegister, UserViewSet, MyProfileView, UserDeposit, StripeWebhookView, ActivateAccountView
 
 router = DefaultRouter()
 router.register("users", UserViewSet, basename="user")
@@ -19,6 +19,7 @@ urlpatterns = [
     path("me/", MyProfileView.as_view(), name="my-profile"),
     path("deposit/", UserDeposit.as_view(), name="stripe-deposit"),
     path("webhook/", StripeWebhookView.as_view(), name="stripe-webhook"),
+    path("activate/<str:uid>/<str:token>/", ActivateAccountView.as_view(), name="activate"),
     path("", include(router.urls)),
 ]
 
