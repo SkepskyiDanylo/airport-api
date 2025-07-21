@@ -7,6 +7,10 @@ from airport_api import settings
 from user.models import User
 
 
+class EmptySerializer(serializers.Serializer):
+    pass
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -51,16 +55,19 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class EmailVerificationSerializer(serializers.Serializer):
-    uidb64 = serializers.CharField()
-    token = serializers.CharField()
-
-
 class RequestPasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
 class SetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    uidb64 = serializers.CharField()
+    uid= serializers.CharField()
     token = serializers.CharField()
+
+    class Meta:
+        extra_kwargs = {
+            "password": {
+                "write_only": True,
+                "style": {"input_type": "password"},
+            }
+        }

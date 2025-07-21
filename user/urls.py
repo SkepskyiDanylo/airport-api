@@ -6,7 +6,8 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
-from user.views import UserRegister, UserViewSet, MyProfileView, UserDeposit, StripeWebhookView, ActivateAccountView
+from user.views import UserRegister, UserViewSet, MyProfileView, UserDeposit, StripeWebhookView, ActivateAccountView, \
+    PasswordResetView, CheckPasswordTokenView, SetNewPasswordAPIView
 
 router = DefaultRouter()
 router.register("users", UserViewSet, basename="user")
@@ -19,7 +20,10 @@ urlpatterns = [
     path("me/", MyProfileView.as_view(), name="my-profile"),
     path("deposit/", UserDeposit.as_view(), name="stripe-deposit"),
     path("webhook/", StripeWebhookView.as_view(), name="stripe-webhook"),
-    path("activate/<str:uid>/<str:token>/", ActivateAccountView.as_view(), name="activate"),
+    path("activate/<str:uid>/<str:token>/", ActivateAccountView.as_view(), name="email-activate"),
+    path("password/reset/", PasswordResetView.as_view(), name="password-reset"),
+    path("password/check/<str:uid>/<str:token>/", CheckPasswordTokenView.as_view(), name="password-check"),
+    path("password/set/", SetNewPasswordAPIView.as_view(), name="password-set"),
     path("", include(router.urls)),
 ]
 
