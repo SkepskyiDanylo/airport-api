@@ -6,7 +6,7 @@ from django.contrib.auth.models import (
 )
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 
 # noinspection PySimplifyBooleanCheck
@@ -61,6 +61,9 @@ class User(AbstractUser):
 
     objects = UserManager()
 
+    def __str__(self):
+        return self.email
+
 
 class Transaction(models.Model):
     STATUS_CHOICES = (
@@ -76,6 +79,11 @@ class Transaction(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
     )
+
+    class Meta:
+        ordering = ["-date"]
+        verbose_name_plural = _("Transactions")
+        verbose_name = _("Transaction")
 
     def __str__(self):
         return f"{self.amount} {self.status}"

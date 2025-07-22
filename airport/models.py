@@ -4,8 +4,7 @@ import uuid
 import pytz
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import TextChoices
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 
 class BaseModel(models.Model):
@@ -18,6 +17,10 @@ class BaseModel(models.Model):
 
 class AirplaneType(BaseModel):
     name = models.CharField(max_length=255)
+
+    class Meta:
+        verbose_name_plural = _("Airplane Types")
+        verbose_name = _("Airplane Type")
 
     def __str__(self):
         return self.name
@@ -66,6 +69,10 @@ class Airplane(BaseModel):
     )
     image = models.ImageField(upload_to=airplane_image, null=True, blank=True)
 
+    class Meta:
+        verbose_name_plural = _("Airplanes")
+        verbose_name = _("Airplane")
+
     def __str__(self) -> str:
         return f"{self.manufacturer} {self.model}: {self.tail_number}"
 
@@ -85,6 +92,10 @@ class Crew(BaseModel):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     role = models.CharField(max_length=100, choices=ROLE_CHOICES)
+
+    class Meta:
+        verbose_name_plural = _("Crew")
+        verbose_name = _("Crew")
 
     def __str__(self):
         return f"{self.role}: {self.first_name} {self.last_name}"
@@ -107,6 +118,10 @@ class Airport(BaseModel):
         max_digits=9, decimal_places=6,
     )
 
+    class Meta:
+        verbose_name_plural = _("Airports")
+        verbose_name = _("Airport")
+
     def __str__(self):
         return f"{self.IATA_code} - {self.ICAO_code} - {self.name}"
 
@@ -115,6 +130,10 @@ class Route(BaseModel):
     source = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="departures")
     destination = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="arrivals")
     distance = models.IntegerField()
+
+    class Meta:
+        verbose_name_plural = _("Routes")
+        verbose_name = _("Route")
 
     def __str__(self):
         return f"{self.source} -> {self.destination}"
@@ -127,10 +146,24 @@ class Flight(BaseModel):
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
 
+    class Meta:
+        verbose_name_plural = _("Flights")
+        verbose_name = _("Flight")
+
+    def __str__(self):
+        return f"{self.arrival_time}:{self.departure_time}"
+
 
 class Order(BaseModel):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey("user.User", on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = _("Orders")
+        verbose_name = _("Order")
+
+    def __str__(self):
+        return f"{self.user} | {self.created_at}"
 
 
 class Ticket(BaseModel):
@@ -146,3 +179,10 @@ class Ticket(BaseModel):
     )
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name="tickets")
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="tickets")
+
+    class Meta:
+        verbose_name_plural = _("Tickets")
+        verbose_name = _("Ticket")
+
+    def __str__(self):
+        return f"{self.row}:{self.seat}"

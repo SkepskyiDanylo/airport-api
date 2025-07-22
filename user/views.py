@@ -14,7 +14,6 @@ from rest_framework.generics import (
     DestroyAPIView, get_object_or_404
 )
 from rest_framework.response import Response
-from rest_framework.reverse import reverse_lazy
 from rest_framework.views import APIView
 import stripe
 
@@ -92,7 +91,7 @@ class PasswordResetView(generics.GenericAPIView):
                 settings.DEFAULT_FROM_EMAIL,
                 [email]
             )
-        return Response({"detail": _("If email is registered, a reset link has been sent")})
+        return Response({"detail": _("If email is registered, a reset link has been sent")}, status=status.HTTP_200_OK)
 
 
 class CheckPasswordTokenView(generics.RetrieveAPIView):
@@ -152,7 +151,7 @@ class StripeWebhookView(APIView):
                 payload=payload, sig_header=sig_header, secret=endpoint_secret
             )
         except (ValueError, stripe.error.SignatureVerificationError):
-            # Needs to add logging of unsuccessful requests
+            # logging
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if event["type"] == "checkout.session.completed":
@@ -168,7 +167,7 @@ class StripeWebhookView(APIView):
                 #logging
                 return Response(status=status.HTTP_404_NOT_FOUND)
             with transaction.atomic():
-                transaction_amount = (Decimal(amount_paid_cents) / Decimal('100')).quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+                transaction_amount = (Decimal(amount_paid_cents) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
                 user.balance += transaction_amount,
                 user.save()
                 Transaction.objects.create(
@@ -244,4 +243,4 @@ class UserDeposit(APIView):
             )
             return Response({"url": session.url}, status=status.HTTP_200_OK)
         except stripe.error.StripeError:
-            return Response({"detail": "Stripe error"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response({"detail": _("Stripe error")}, status=status.HTTP_503_SERVICE_UNAVAILABLE)

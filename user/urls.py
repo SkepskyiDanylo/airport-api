@@ -6,8 +6,18 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView
 )
 
-from user.views import UserRegister, UserViewSet, MyProfileView, UserDeposit, StripeWebhookView, ActivateAccountView, \
-    PasswordResetView, CheckPasswordTokenView, SetNewPasswordAPIView
+from airport_api import settings
+from user.views import (
+    UserRegister,
+    UserViewSet,
+    MyProfileView,
+    UserDeposit,
+    StripeWebhookView,
+    ActivateAccountView,
+    PasswordResetView,
+    CheckPasswordTokenView,
+    SetNewPasswordAPIView,
+)
 
 router = DefaultRouter()
 router.register("users", UserViewSet, basename="user")
@@ -19,13 +29,18 @@ urlpatterns = [
     path("register/", UserRegister.as_view(), name="register"),
     path("me/", MyProfileView.as_view(), name="my-profile"),
     path("deposit/", UserDeposit.as_view(), name="stripe-deposit"),
-    path("webhook/", StripeWebhookView.as_view(), name="stripe-webhook"),
-    path("activate/<str:uid>/<str:token>/", ActivateAccountView.as_view(), name="email-activate"),
-    path("password/reset/", PasswordResetView.as_view(), name="password-reset"),
-    path("password/check/<str:uid>/<str:token>/", CheckPasswordTokenView.as_view(), name="password-check"),
-    path("password/set/", SetNewPasswordAPIView.as_view(), name="password-set"),
+    path("deposit/webhook/", StripeWebhookView.as_view(), name="stripe-webhook"),
     path("", include(router.urls)),
 ]
+
+
+if settings.USE_EMAIL_VERIFICATION:
+    urlpatterns += [
+        path("activate/<str:uid>/<str:token>/", ActivateAccountView.as_view(), name="email-activate"),
+        path("password/reset/", PasswordResetView.as_view(), name="password-reset"),
+        path("password/check/<str:uid>/<str:token>/", CheckPasswordTokenView.as_view(), name="password-check"),
+        path("password/set/", SetNewPasswordAPIView.as_view(), name="password-set"),
+    ]
 
 
 app_name = "user"
