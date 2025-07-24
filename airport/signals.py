@@ -18,7 +18,7 @@ def airplane_save_handler(sender, instance, **kwargs):
         pass
 
 
-@ receiver(post_delete, sender=Airplane)
+@receiver(post_delete, sender=Airplane)
 def airplane_delete_handler(sender, instance, **kwargs):
     if instance.image:
         if os.path.isfile(instance.image.path):
