@@ -21,6 +21,7 @@ class AirplaneListSerializer(serializers.ModelSerializer):
         model = Airplane
         fields = (
             "id",
+            "tail_number",
             "manufacturer",
             "type_name",
             "model",
@@ -29,5 +30,32 @@ class AirplaneListSerializer(serializers.ModelSerializer):
             "rows",
             "seats_in_row",
             "total_seats",
+            "image",
+        )
+
+
+class AirplaneEditSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Airplane
+        fields = (
+            "id",
+            "tail_number",
+            "manufacturer",
+            "type",
+            "model",
+            "status",
+            "last_inspection",
+            "rows",
+            "seats_in_row",
+            "total_seats",
+        )
+
+class AirplaneImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Airplane
+        fields = (
+            "id",
             "image",
         )

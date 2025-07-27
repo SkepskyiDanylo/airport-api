@@ -4,6 +4,7 @@ import uuid
 import pytz
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 
@@ -92,10 +93,24 @@ class Crew(BaseModel):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     role = models.CharField(max_length=100, choices=ROLE_CHOICES)
+    license_number = models.CharField(max_length=32, unique=True)
+    license_expiration = models.DateTimeField()
 
     class Meta:
         verbose_name_plural = _("Crew")
         verbose_name = _("Crew")
+
+    @property
+    def is_expired(self) -> bool:
+        if now() < self.license_expiration:
+            return False
+        return True
+
+    def is_available_in(self, start_time, end_time) -> bool:
+        return not self.flights.filter(
+            departure_time__lt=end_time,
+            arrival_time__gt=start_time
+        ).exists()
 
     def __str__(self):
         return f"{self.role}: {self.first_name} {self.last_name}"
@@ -129,6 +144,7 @@ class Airport(BaseModel):
 class Route(BaseModel):
     source = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="departures")
     destination = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="arrivals")
+    stops = models.ManyToManyField(Airport, related_name="stops")
     distance = models.IntegerField()
 
     class Meta:
@@ -147,6 +163,7 @@ class Flight(BaseModel):
     arrival_time = models.DateTimeField()
 
     class Meta:
+        ordering = ("departure_time", "arrival_time")
         verbose_name_plural = _("Flights")
         verbose_name = _("Flight")
 
