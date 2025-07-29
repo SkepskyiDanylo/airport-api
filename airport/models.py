@@ -1,10 +1,11 @@
 import os
 import uuid
+from datetime import datetime, timedelta
 
 import pytz
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.utils.timezone import now
+from django.utils.timezone import now, localtime
 from django.utils.translation import gettext_lazy as _
 
 
@@ -25,6 +26,7 @@ class AirplaneType(BaseModel):
 
     def __str__(self):
         return self.name
+
 
 def airplane_image(instance: "Airplane", filename: str) -> str:
     ext = filename.split(".")[-1].lower()
@@ -101,6 +103,10 @@ class Crew(BaseModel):
         verbose_name = _("Crew")
 
     @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
+
+    @property
     def is_expired(self) -> bool:
         if now() < self.license_expiration:
             return False
@@ -133,6 +139,11 @@ class Airport(BaseModel):
         max_digits=9, decimal_places=6,
     )
 
+    @property
+    def current_time(self) -> datetime:
+        tz = pytz.timezone(self.timezone)
+        return localtime(now(), timezone=tz).isoformat()
+
     class Meta:
         verbose_name_plural = _("Airports")
         verbose_name = _("Airport")
@@ -144,8 +155,8 @@ class Airport(BaseModel):
 class Route(BaseModel):
     source = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="departures")
     destination = models.ForeignKey(Airport, on_delete=models.CASCADE, related_name="arrivals")
-    stops = models.ManyToManyField(Airport, related_name="stops")
-    distance = models.IntegerField()
+    stops = models.ManyToManyField(Airport, related_name="stops", blank=True)
+    distance = models.IntegerField(help_text=_("Distance in kilometers"))
 
     class Meta:
         verbose_name_plural = _("Routes")
@@ -166,6 +177,44 @@ class Flight(BaseModel):
         ordering = ("departure_time", "arrival_time")
         verbose_name_plural = _("Flights")
         verbose_name = _("Flight")
+
+    @property
+    def status(self) -> str:
+        time_now = now()
+        if self.departure_time > time_now:
+            return "PLANNED"
+        elif self.arrival_time > time_now:
+            return "COMPLETED"
+        return "IN_PROGRESS"
+
+    @property
+    def price(self) -> float:
+        if now() > self.arrival_time:
+            return 0.0
+        base_price = self.route.distance * 10
+
+        if self.departure_time - now() < timedelta(days=3):
+            base_price *= 1.2
+
+        total_seats = self.airplane.total_seats
+        booked_seats = self.tickets.count()
+
+        if total_seats:
+            occupancy = booked_seats / total_seats
+            if occupancy > 0.8:
+                base_price *= 1.3
+
+        return round(base_price, 2)
+
+    @property
+    def local_departure_time(self) -> datetime:
+        tz = pytz.timezone(self.route.source.timezone)
+        return localtime(self.departure_time, timezone=tz).isoformat()
+
+    @property
+    def local_arrival_time(self) -> datetime:
+        tz = pytz.timezone(self.route.destination.timezone)
+        return localtime(self.arrival_time, timezone=tz).isoformat()
 
     def __str__(self):
         return f"{self.arrival_time}:{self.departure_time}"

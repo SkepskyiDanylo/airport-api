@@ -58,7 +58,7 @@ class UserRegister(generics.CreateAPIView):
 class ActivateAccountView(generics.RetrieveAPIView):
     serializer_class = EmptySerializer
 
-    def get(self, request, uid = None, token = None):
+    def get(self, request, uid=None, token=None):
         try:
             uid = uuid.UUID(uid)
             user = User.objects.get(pk=uid)
@@ -74,7 +74,6 @@ class ActivateAccountView(generics.RetrieveAPIView):
 
 class PasswordResetView(generics.GenericAPIView):
     serializer_class = RequestPasswordResetSerializer
-
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -96,7 +95,7 @@ class PasswordResetView(generics.GenericAPIView):
 
 class CheckPasswordTokenView(generics.RetrieveAPIView):
 
-    def get(self, request, uid = None, token = None):
+    def get(self, request, uid=None, token=None):
         try:
             uid = uuid.UUID(uid)
             user = User.objects.get(pk=uid)
@@ -164,7 +163,7 @@ class StripeWebhookView(APIView):
             try:
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
-                #logging
+                # logging
                 return Response(status=status.HTTP_404_NOT_FOUND)
             with transaction.atomic():
                 transaction_amount = (Decimal(amount_paid_cents) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
@@ -191,7 +190,7 @@ class StripeWebhookView(APIView):
             try:
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
-                #logging
+                # logging
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
             with transaction.atomic():
@@ -243,4 +242,7 @@ class UserDeposit(APIView):
             )
             return Response({"url": session.url}, status=status.HTTP_200_OK)
         except stripe.error.StripeError:
-            return Response({"detail": _("Stripe error")}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            return Response(
+                {"detail": _("Stripe error")},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
