@@ -221,13 +221,25 @@ class Flight(BaseModel):
 
 
 class Order(BaseModel):
+    STATUS_CHOICES = (
+        ("PENDING", _("Pending")),
+        ("PAID", _("Paid")),
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey("user.User", on_delete=models.CASCADE)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="PENDING")
+
     class Meta:
         verbose_name_plural = _("Orders")
         verbose_name = _("Order")
+
+    @property
+    def total_price(self):
+        price = float(0)
+        tickets = self.tickets.all()
+        for ticket in tickets:
+            price += ticket.price
+        return price
 
     def __str__(self):
         return f"{self.user} | {self.created_at}"
@@ -251,6 +263,11 @@ class Ticket(BaseModel):
     class Meta:
         verbose_name_plural = _("Tickets")
         verbose_name = _("Ticket")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["row", "seat", "flight"], name="unique_ticket_seat_and_flight"
+            )
+        ]
 
     def __str__(self):
         return f"{self.row}:{self.seat}"
