@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext as _
 
-from user.models import User
+from user.models import User, Transaction
 
 admin.site.unregister(Group)
 
@@ -14,7 +14,7 @@ class UserAdmin(UserAdmin):
     change_user_password_template = None
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        (_("Personal info"), {"fields": ("first_name", "last_name")}),
+        (_("Personal info"), {"fields": ("first_name", "last_name", "balance")}),
         (
             _("Permissions"),
             {
@@ -22,8 +22,6 @@ class UserAdmin(UserAdmin):
                     "is_active",
                     "is_staff",
                     "is_superuser",
-                    "groups",
-                    "user_permissions",
                 ),
             },
         ),
@@ -44,3 +42,17 @@ class UserAdmin(UserAdmin):
     list_filter = ("is_staff", "is_superuser", "is_active")
     search_fields = ("username", "first_name", "last_name", "email")
     ordering = ("email",)
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "status",
+        "amount",
+    )
+    list_filter = (
+        "user",
+        "status"
+    )
+    search_fields = ("amount",)
+    readonly_fields = ("id",)
