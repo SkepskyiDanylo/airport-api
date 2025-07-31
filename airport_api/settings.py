@@ -236,3 +236,29 @@ LOGGING = {
     },
 }
 
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Swagger",
+    "DESCRIPTION": "AIRPORT internal api",
+    "VERSION": "1.0.0",
+    "SECURITY_SCHEMES": {
+        "BasicAuth": {
+            "type": "http",
+            "scheme": "basic"
+        },
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        }
+    },
+    "DEFAULT_SECURITY": [
+        {"BasicAuth": []},
+        {"BearerAuth": []}
+    ],
+    "filter": True,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+    },
+    "COMPONENT_SPLIT_REQUEST": True
+}
