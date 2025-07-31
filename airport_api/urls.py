@@ -22,7 +22,9 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += [path("yml/", SpectacularYAMLAPIView.as_view(), name="yml-schema")]
     urlpatterns += [path("json/", SpectacularJSONAPIView.as_view(), name="schema")]
-    urlpatterns += [path("swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui")]
+    urlpatterns += [
+        path("swagger/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui")
+    ]
     urlpatterns += [path("redoc/", SpectacularRedocView.as_view(), name="redoc")]
     import debug_toolbar
     urlpatterns += [path('__debug__/', include(debug_toolbar.urls))]

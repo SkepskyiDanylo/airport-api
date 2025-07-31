@@ -67,13 +67,17 @@ class ActivateAccountView(generics.RetrieveAPIView):
             uid = uuid.UUID(uid)
             user = User.objects.get(pk=uid)
         except Exception:
-            return HttpResponseRedirect({"detail": _("Invalid link")}, status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponseRedirect(
+                {"detail": _("Invalid link")}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         if default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
             return Response({"detail": _("Account activated")}, status=status.HTTP_200_OK)
-        return Response({"detail": _("Token invalid or expired")}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"detail": _("Token invalid or expired")}, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 @extend_schema(tags=["Me"])
@@ -106,10 +110,14 @@ class CheckPasswordTokenView(generics.RetrieveAPIView):
             uid = uuid.UUID(uid)
             user = User.objects.get(pk=uid)
         except (get_user_model().DoesNotExist, ValueError):
-            return Response({"valid": False, "detail": _("Invalid link")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"valid": False, "detail": _("Invalid link")}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         valid = default_token_generator.check_token(user, token)
-        return Response({"valid": valid}, status=status.HTTP_200_OK if valid else status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"valid": valid}, status=status.HTTP_200_OK if valid else status.HTTP_400_BAD_REQUEST
+        )
 
 
 @extend_schema(tags=["Me"])
@@ -130,7 +138,10 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
             return Response({"detail": _("Invalid uid")}, status=status.HTTP_400_BAD_REQUEST)
 
         if not default_token_generator.check_token(user, token):
-            return Response({"detail": _("Token invalid or expired")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "detail": _("Token invalid or expired")
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(password)
         user.save()
@@ -176,7 +187,9 @@ class StripeWebhookView(APIView):
                 # logging
                 return Response(status=status.HTTP_404_NOT_FOUND)
             with transaction.atomic():
-                transaction_amount = (Decimal(amount_paid_cents) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+                transaction_amount = (Decimal(amount_paid_cents) / Decimal("100"))
+                transaction_amount = transaction_amount.quantize(Decimal("0.01"),
+                                                                 rounding=ROUND_DOWN)
                 user.balance += transaction_amount,
                 user.save()
                 Transaction.objects.create(
@@ -203,8 +216,10 @@ class StripeWebhookView(APIView):
                 # logging
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
-            with transaction.atomic():
-                transaction_amount = (Decimal(amount_requested_cents) / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
+            with (transaction.atomic()):
+                transaction_amount = (Decimal(amount_requested_cents) / Decimal("100"))
+                transaction_amount = transaction_amount.quantize(Decimal("0.01"),
+                                                                 rounding=ROUND_DOWN)
                 Transaction.objects.create(
                     user=user,
                     amount=transaction_amount,

@@ -43,6 +43,7 @@ class UserAdmin(UserAdmin):
     search_fields = ("username", "first_name", "last_name", "email")
     ordering = ("email",)
 
+
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     list_display = (

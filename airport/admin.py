@@ -10,6 +10,7 @@ from airport.models import (
     Ticket,
 )
 
+
 @admin.register(AirplaneType)
 class AirplaneTypeAdmin(admin.ModelAdmin):
     list_display = (
@@ -20,6 +21,7 @@ class AirplaneTypeAdmin(admin.ModelAdmin):
         "name",
     )
     readonly_fields = ("id",)
+
 
 @admin.register(Airplane)
 class AirplaneAdmin(admin.ModelAdmin):
@@ -60,7 +62,6 @@ class CrewAdmin(admin.ModelAdmin):
         "role"
     )
     readonly_fields = ("id",)
-
 
 
 @admin.register(Airport)

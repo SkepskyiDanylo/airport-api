@@ -61,7 +61,7 @@ class RequestPasswordResetSerializer(serializers.Serializer):
 
 class SetNewPasswordSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    uid= serializers.CharField()
+    uid = serializers.CharField()
     token = serializers.CharField()
 
     class Meta:

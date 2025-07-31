@@ -5,6 +5,7 @@ from rest_framework import serializers
 from airport.models import AirplaneType, Airplane, Crew, Airport, Route, Flight, Ticket, Order
 from django.utils.translation import gettext_lazy as _
 
+
 class AirplaneTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -160,7 +161,6 @@ class FLightListSerializer(serializers.ModelSerializer):
     )
     stops = serializers.SerializerMethodField()
 
-
     class Meta:
         model = Flight
         fields = (
@@ -214,10 +214,14 @@ class FlightSerializer(serializers.ModelSerializer):
         if "CO-PILOT" not in roles:
             raise serializers.ValidationError(_("Flight must include a CO-PILOT"))
         if "FLIGHT_ATTENDANT" not in roles:
-            raise serializers.ValidationError(_("Flight must include at least one FLIGHT_ATTENDANT"))
+            raise serializers.ValidationError(_(
+                "Flight must include at least one FLIGHT_ATTENDANT"
+            ))
         for member in crew_list:
             if member.is_expired:
-                raise serializers.ValidationError(_("%(member)s has an expired license.") % {"member": str(member.full_name)})
+                raise serializers.ValidationError(
+                    _("%(member)s has an expired license.") % {"member": str(member.full_name)}
+                )
         return crew
 
     def validate(self, validated_data):
@@ -231,7 +235,10 @@ class FlightSerializer(serializers.ModelSerializer):
         for member in crew:
             if not member.is_available_in(departure_time, arrival_time):
                 raise serializers.ValidationError(
-                    _("%(member)s is not available during this flight.") % {"member": str(member.full_name)})
+                    _(
+                        "%(member)s is not available during this flight."
+                    ) % {"member": str(member.full_name)}
+                )
         return validated_data
 
 
@@ -269,6 +276,7 @@ class FlightDetailSerializer(serializers.ModelSerializer):
                 )
         return taken_seats
 
+
 class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -288,7 +296,9 @@ class TicketSerializer(serializers.ModelSerializer):
         flight = data.get("flight")
 
         if Ticket.objects.filter(row=row, seat=seat, flight=flight).exists():
-            raise serializers.ValidationError({"seat": f"Seat {row}-{seat} is already taken for this flight."})
+            raise serializers.ValidationError(
+                {"seat": f"Seat {row}-{seat} is already taken for this flight."}
+            )
         if flight.status != "PLANNED":
             raise serializers.ValidationError({"flight": _("Flight is completed or planned.")})
         return data
@@ -322,7 +332,9 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             key = (ticket_data["row"], ticket_data["seat"], ticket_data["flight"].id)
             if key in seen_seats:
                 raise serializers.ValidationError({
-                    "tickets": f"Duplicate seat {ticket_data["row"]}-{ticket_data["seat"]} in this order for the same flight."
+                    "tickets":
+                        f"Duplicate seat {ticket_data["row"]}-{ticket_data["seat"]} "
+                        f"in this order for the same flight."
                 })
             seen_seats.add(key)
 
@@ -334,7 +346,9 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 Ticket.objects.create(order=order, price=price, **ticket_data)
             price = Decimal(order.total_price)
             if user.balance < price:
-                raise serializers.ValidationError(_("Not enough on balance, %(balance)s$ < %(price)s$.") % {"balance": user.balance, "price": price})
+                raise serializers.ValidationError(
+                    _("Not enough on balance, %(balance)s$ < %(price)s$.") % {"balance": user.balance, "price": price}
+                )
             user.balance = user.balance - price
             user.save()
             return order
@@ -351,6 +365,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "total_price",
             "tickets",
         )
+
 
 class OrderDetailSerializer(OrderSerializer):
     tickets = TicketDetailSerializer(many=True, read_only=True)

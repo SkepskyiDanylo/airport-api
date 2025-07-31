@@ -10,10 +10,24 @@ from rest_framework.viewsets import GenericViewSet
 
 from airport.models import AirplaneType, Airplane, Crew, Airport, Route, Flight, Order
 from airport.permissions import IsAdminOrAuthenticatedReadOnly
-from airport.serializers import AirplaneTypeSerializer, AirplaneListSerializer, AirplaneEditSerializer, \
-    AirplaneImageSerializer, CrewSerializer, AirportSerializer, RouteListSerializer, RouteDetailSerializer, \
-    RouteSerializer, FLightListSerializer, FlightDetailSerializer, FlightSerializer, OrderCreateSerializer, \
-    OrderSerializer, OrderDetailSerializer, ReturnBalanceSerializer
+from airport.serializers import (
+    AirplaneTypeSerializer,
+    AirplaneListSerializer,
+    AirplaneEditSerializer,
+    AirplaneImageSerializer,
+    CrewSerializer,
+    AirportSerializer,
+    RouteListSerializer,
+    RouteDetailSerializer,
+    RouteSerializer,
+    FLightListSerializer,
+    FlightDetailSerializer,
+    FlightSerializer,
+    OrderCreateSerializer,
+    OrderSerializer,
+    OrderDetailSerializer,
+    ReturnBalanceSerializer
+)
 from django.utils.translation import gettext as _
 
 
@@ -117,9 +131,9 @@ class FlightViewSet(viewsets.ModelViewSet):
 
 @extend_schema(tags=["Orders"])
 class OrderViewSet(mixins.CreateModelMixin,
-                      mixins.RetrieveModelMixin,
-                      mixins.ListModelMixin,
-                      GenericViewSet):
+                   mixins.RetrieveModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
@@ -144,7 +158,10 @@ class OrderViewSet(mixins.CreateModelMixin,
         user = order.user
         created_date = order.created_at.date()
         if created_date + timedelta(days=14) < today:
-            return Response({"detail": _("Order older than 14 days cannot be cancelled")}, status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {"detail": _("Order older than 14 days cannot be cancelled")},
+                status=status.HTTP_403_FORBIDDEN
+            )
         if order.tickets.all().count() < 1:
             return Response({"detail": _("No tickets available")}, status=status.HTTP_403_FORBIDDEN)
         with transaction.atomic():
@@ -167,4 +184,3 @@ class OrderViewSet(mixins.CreateModelMixin,
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
