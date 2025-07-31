@@ -260,8 +260,8 @@ class UserDeposit(APIView):
                     "quantity": 1,
                 }],
                 mode="payment",
-                success_url="http://localhost:8000/success/",
-                cancel_url="http://localhost:8000/cancel/",
+                success_url=settings.SUCCESS_URL,
+                cancel_url=settings.CANCEL_URL,
                 metadata={
                     "user_id": self.request.user.id,
                     "amount": str(amount_cents),

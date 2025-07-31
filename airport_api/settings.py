@@ -14,7 +14,8 @@ DEBUG = os.getenv("DEBUG").lower() == "true"
 # Stripe
 STRIPE_API_KEY = os.getenv("STRIPE_API_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-
+SUCCESS_URL = os.getenv("SUCCESS_URL")
+CANCEL_URL = os.getenv("CANCEL_URL")
 
 # SMTP
 USE_EMAIL_VERIFICATION = True
@@ -213,3 +214,25 @@ JAZZMIN_SETTINGS = {
         "airport.Ticket": "fa-solid fa-ticket",
     }
 }
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+}
+
