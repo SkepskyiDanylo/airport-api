@@ -157,13 +157,15 @@ class OrderViewSet(mixins.CreateModelMixin,
         today = now().date()
         user = order.user
         created_date = order.created_at.date()
+        if order.status == "CANCELED":
+            return Response({"detail": _("Order already cancelled.")}, status=status.HTTP_409_CONFLICT)
         if created_date + timedelta(days=14) < today:
             return Response(
                 {"detail": _("Order older than 14 days cannot be cancelled")},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_400_BAD_REQUEST
             )
         if order.tickets.all().count() < 1:
-            return Response({"detail": _("No tickets available")}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": _("No tickets available.")}, status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
             return_balance = 0
             not_returnable = []
@@ -176,6 +178,8 @@ class OrderViewSet(mixins.CreateModelMixin,
                     ticket.delete()
             user.balance = user.balance + return_balance
             user.save()
+            order.status = "CANCELED"
+            order.save()
         data = {
             "tickets": not_returnable,
             "returned_balance": return_balance,

@@ -1,7 +1,8 @@
+import logging
 import uuid
 from decimal import Decimal, ROUND_DOWN, InvalidOperation
 
-from django.contrib.auth import get_user, get_user_model
+from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import transaction
@@ -30,7 +31,7 @@ from user.serializers import (
 
 stripe.api_key = settings.STRIPE_API_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
-
+logger = logging.getLogger(__name__)
 
 @extend_schema(tags=["User"])
 class UserViewSet(viewsets.ModelViewSet):
@@ -170,8 +171,8 @@ class StripeWebhookView(APIView):
             event = stripe.Webhook.construct_event(
                 payload=payload, sig_header=sig_header, secret=endpoint_secret
             )
-        except (ValueError, stripe.error.SignatureVerificationError):
-            # logging
+        except (ValueError, stripe.error.SignatureVerificationError) as e:
+            logger.warning(f"Stripe event not found: {e}")
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         if event["type"] == "checkout.session.completed":
@@ -183,8 +184,8 @@ class StripeWebhookView(APIView):
             user_id = metadata.get("user_id")
             try:
                 user = User.objects.get(id=user_id)
-            except User.DoesNotExist:
-                # logging
+            except User.DoesNotExist as e:
+                logger.warning(f"User not found: {e}")
                 return Response(status=status.HTTP_404_NOT_FOUND)
             with transaction.atomic():
                 transaction_amount = (Decimal(amount_paid_cents) / Decimal("100"))
@@ -212,8 +213,8 @@ class StripeWebhookView(APIView):
 
             try:
                 user = User.objects.get(id=user_id)
-            except User.DoesNotExist:
-                # logging
+            except User.DoesNotExist as e:
+                logger.warning(f"User not found: {e}")
                 return Response(status=status.HTTP_404_NOT_FOUND)
 
             with (transaction.atomic()):
@@ -267,7 +268,8 @@ class UserDeposit(APIView):
                 }
             )
             return Response({"url": session.url}, status=status.HTTP_200_OK)
-        except stripe.error.StripeError:
+        except stripe.error.StripeError as e:
+            logger.warning(f"Stripe error: {e}")
             return Response(
                 {"detail": _("Stripe error")},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE

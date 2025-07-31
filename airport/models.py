@@ -223,12 +223,12 @@ class Flight(BaseModel):
 
 class Order(BaseModel):
     STATUS_CHOICES = (
-        ("PENDING", _("Pending")),
+        ("CANCELLED", _("Cancelled")),
         ("PAID", _("Paid")),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey("user.User", on_delete=models.CASCADE)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="PENDING")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="PAID")
 
     class Meta:
         verbose_name_plural = _("Orders")
