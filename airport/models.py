@@ -1,6 +1,7 @@
 import os
 import uuid
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 import pytz
 from django.core.validators import MinValueValidator
@@ -183,15 +184,15 @@ class Flight(BaseModel):
         time_now = now()
         if self.departure_time > time_now:
             return "PLANNED"
-        elif self.arrival_time > time_now:
+        elif self.arrival_time < time_now:
             return "COMPLETED"
         return "IN_PROGRESS"
 
     @property
     def price(self) -> float:
-        if now() > self.arrival_time:
+        if not self.arrival_time or now() > self.arrival_time:
             return 0.0
-        base_price = self.route.distance * 10
+        base_price = self.route.distance * 0.025
 
         if self.departure_time - now() < timedelta(days=3):
             base_price *= 1.2
@@ -235,7 +236,7 @@ class Order(BaseModel):
 
     @property
     def total_price(self):
-        price = float(0)
+        price = Decimal(0)
         tickets = self.tickets.all()
         for ticket in tickets:
             price += ticket.price

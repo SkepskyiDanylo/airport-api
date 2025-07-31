@@ -19,6 +19,7 @@ class AirplaneTypeAdmin(admin.ModelAdmin):
     search_fields = (
         "name",
     )
+    readonly_fields = ("id",)
 
 @admin.register(Airplane)
 class AirplaneAdmin(admin.ModelAdmin):
@@ -39,6 +40,7 @@ class AirplaneAdmin(admin.ModelAdmin):
         "rows",
         "seats_in_row"
     )
+    readonly_fields = ("id",)
 
 
 @admin.register(Crew)
@@ -57,6 +59,8 @@ class CrewAdmin(admin.ModelAdmin):
         "license_expiration",
         "role"
     )
+    readonly_fields = ("id",)
+
 
 
 @admin.register(Airport)
@@ -76,6 +80,7 @@ class AirportAdmin(admin.ModelAdmin):
         "name",
         "closest_big_city",
     )
+    readonly_fields = ("id",)
 
 
 @admin.register(Route)
@@ -96,6 +101,7 @@ class RouteAdmin(admin.ModelAdmin):
         "destination__IATA_code",
         "destination__ICAO_code",
     )
+    readonly_fields = ("id",)
 
 
 @admin.register(Flight)
@@ -116,7 +122,7 @@ class FlightAdmin(admin.ModelAdmin):
         "crew__first_name",
         "crew__last_name",
     )
-    readonly_fields = ("price", "local_arrival_time", "local_departure_time")
+    readonly_fields = ("price", "local_arrival_time", "local_departure_time", "id")
 
 
 @admin.register(Order)

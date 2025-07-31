@@ -1,5 +1,8 @@
+from decimal import Decimal
+
+from django.db import transaction
 from rest_framework import serializers
-from airport.models import AirplaneType, Airplane, Crew, Airport, Route, Flight
+from airport.models import AirplaneType, Airplane, Crew, Airport, Route, Flight, Ticket, Order
 from django.utils.translation import gettext_lazy as _
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
@@ -232,7 +235,128 @@ class FlightSerializer(serializers.ModelSerializer):
         return validated_data
 
 
-class FlightDetailSerializer(FlightSerializer):
+class FlightDetailSerializer(serializers.ModelSerializer):
     airplane = AirplaneListSerializer(read_only=True)
     crew = CrewSerializer(read_only=True)
     route = RouteListSerializer(read_only=True)
+    taken_seats = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Flight
+        fields = (
+            "id",
+            "airplane",
+            "crew",
+            "route",
+            "departure_time",
+            "arrival_time",
+            "local_departure_time",
+            "local_arrival_time",
+            "price",
+            "status",
+            "taken_seats"
+        )
+
+    def get_taken_seats(self, obj):
+        taken_seats = []
+        for ticket in obj.tickets.all():
+            if ticket.order.status != "CANCELLED":
+                taken_seats.append(
+                    {
+                        "row": ticket.row,
+                        "seat": ticket.seat,
+                    }
+                )
+        return taken_seats
+
+class TicketSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Ticket
+        fields = (
+            "id",
+            "row",
+            "seat",
+            "flight",
+            "price",
+        )
+        read_only_fields = ("id", "price")
+
+    def validate(self, data):
+        row = data.get("row")
+        seat = data.get("seat")
+        flight = data.get("flight")
+
+        if Ticket.objects.filter(row=row, seat=seat, flight=flight).exists():
+            raise serializers.ValidationError({"seat": f"Seat {row}-{seat} is already taken for this flight."})
+        if flight.status != "PLANNED":
+            raise serializers.ValidationError({"flight": _("Flight is completed or planned.")})
+        return data
+
+    def create(self, validated_data):
+        flight = validated_data.get("flight")
+        ticket = Ticket.objects.create(price=flight.price, **validated_data)
+        return ticket
+
+
+class TicketDetailSerializer(TicketSerializer):
+    flight = FlightDetailSerializer(read_only=True)
+
+
+class OrderCreateSerializer(serializers.ModelSerializer):
+    tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
+
+    class Meta:
+        model = Order
+        fields = (
+            "id",
+            "tickets",
+        )
+
+    def create(self, validated_data):
+        tickets_data = validated_data.pop("tickets")
+        user = self.context["request"].user
+        seen_seats = set()
+
+        for ticket_data in tickets_data:
+            key = (ticket_data["row"], ticket_data["seat"], ticket_data["flight"].id)
+            if key in seen_seats:
+                raise serializers.ValidationError({
+                    "tickets": f"Duplicate seat {ticket_data["row"]}-{ticket_data["seat"]} in this order for the same flight."
+                })
+            seen_seats.add(key)
+
+        with transaction.atomic():
+            order = Order.objects.create(user=user, **validated_data)
+            for ticket_data in tickets_data:
+                flight = ticket_data.get("flight")
+                price = Decimal(flight.price)
+                Ticket.objects.create(order=order, price=price, **ticket_data)
+            price = Decimal(order.total_price)
+            if user.balance < price:
+                raise serializers.ValidationError(_("Not enough on balance, %(balance)s$ < %(price)s$.") % {"balance": user.balance, "price": price})
+            user.balance = user.balance - price
+            user.save()
+            return order
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    tickets = TicketSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = (
+            "id",
+            "created_at",
+            "total_price",
+            "tickets",
+        )
+
+class OrderDetailSerializer(OrderSerializer):
+    tickets = TicketDetailSerializer(many=True, read_only=True)
+
+
+class ReturnBalanceSerializer(serializers.Serializer):
+    not_returnable_tickets = TicketSerializer(many=True, read_only=True)
+    returned_balance = serializers.DecimalField(max_digits=10, decimal_places=2)
+    balance = serializers.DecimalField(max_digits=10, decimal_places=2)

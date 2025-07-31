@@ -7,6 +7,7 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext as _
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions, viewsets, status
 from rest_framework.generics import (
     RetrieveAPIView,
@@ -31,12 +32,14 @@ stripe.api_key = settings.STRIPE_API_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
 
+@extend_schema(tags=["User"])
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdmin,)
 
 
+@extend_schema(tags=["Me"])
 class UserRegister(generics.CreateAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -55,6 +58,7 @@ class UserRegister(generics.CreateAPIView):
         )
 
 
+@extend_schema(tags=["Me"])
 class ActivateAccountView(generics.RetrieveAPIView):
     serializer_class = EmptySerializer
 
@@ -72,6 +76,7 @@ class ActivateAccountView(generics.RetrieveAPIView):
         return Response({"detail": _("Token invalid or expired")}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=["Me"])
 class PasswordResetView(generics.GenericAPIView):
     serializer_class = RequestPasswordResetSerializer
 
@@ -90,9 +95,10 @@ class PasswordResetView(generics.GenericAPIView):
                 settings.DEFAULT_FROM_EMAIL,
                 [email]
             )
-        return Response({"detail": _("If email is registered, a reset link has been sent")}, status=status.HTTP_200_OK)
+        return Response({"detail": _("The reset link has been sent")}, status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["Me"])
 class CheckPasswordTokenView(generics.RetrieveAPIView):
 
     def get(self, request, uid=None, token=None):
@@ -106,8 +112,10 @@ class CheckPasswordTokenView(generics.RetrieveAPIView):
         return Response({"valid": valid}, status=status.HTTP_200_OK if valid else status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(tags=["Me"])
 class SetNewPasswordAPIView(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
+    http_method_names = ["post"]
 
     def patch(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -129,6 +137,7 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
         return Response({"detail": _("Password reset successful")}, status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["Me"])
 class MyProfileView(RetrieveAPIView, UpdateAPIView, DestroyAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.none()
@@ -138,6 +147,7 @@ class MyProfileView(RetrieveAPIView, UpdateAPIView, DestroyAPIView):
         return self.request.user
 
 
+@extend_schema(tags=["Me"])
 class StripeWebhookView(APIView):
     authentication_classes = (permissions.AllowAny,)
 
@@ -205,6 +215,7 @@ class StripeWebhookView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["Me"])
 class UserDeposit(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 

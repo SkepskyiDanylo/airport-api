@@ -1,20 +1,30 @@
-from requests import Response
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from datetime import timedelta
 
-from airport.models import AirplaneType, Airplane, Crew, Airport, Route, Flight
+from django.db import transaction
+from django.utils.timezone import now
+from drf_spectacular.utils import extend_schema
+from rest_framework import viewsets, status, permissions, mixins
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
+
+from airport.models import AirplaneType, Airplane, Crew, Airport, Route, Flight, Order
 from airport.permissions import IsAdminOrAuthenticatedReadOnly
 from airport.serializers import AirplaneTypeSerializer, AirplaneListSerializer, AirplaneEditSerializer, \
     AirplaneImageSerializer, CrewSerializer, AirportSerializer, RouteListSerializer, RouteDetailSerializer, \
-    RouteSerializer, FLightListSerializer, FlightDetailSerializer, FlightSerializer
+    RouteSerializer, FLightListSerializer, FlightDetailSerializer, FlightSerializer, OrderCreateSerializer, \
+    OrderSerializer, OrderDetailSerializer, ReturnBalanceSerializer
+from django.utils.translation import gettext as _
 
 
+@extend_schema(tags=["Airplane Type"])
 class AirplaneTypeViewSet(viewsets.ModelViewSet):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
     permission_classes = (IsAdminOrAuthenticatedReadOnly,)
 
 
+@extend_schema(tags=["Airplane"])
 class AirplaneViewSet(viewsets.ModelViewSet):
     queryset = Airplane.objects.all()
     permission_classes = (IsAdminOrAuthenticatedReadOnly,)
@@ -50,18 +60,21 @@ class AirplaneViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@extend_schema(tags=["Crew"])
 class CrewViewSet(viewsets.ModelViewSet):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
     permission_classes = (IsAdminOrAuthenticatedReadOnly,)
 
 
+@extend_schema(tags=["Airport"])
 class AirportViewSet(viewsets.ModelViewSet):
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
     permission_classes = (IsAdminOrAuthenticatedReadOnly,)
 
 
+@extend_schema(tags=["Routes"])
 class RouteViewSet(viewsets.ModelViewSet):
     queryset = Route.objects.all()
     permission_classes = (IsAdminOrAuthenticatedReadOnly,)
@@ -89,6 +102,7 @@ class RouteViewSet(viewsets.ModelViewSet):
         return RouteSerializer
 
 
+@extend_schema(tags=["Flights"])
 class FlightViewSet(viewsets.ModelViewSet):
     queryset = Flight.objects.all()
     permission_classes = (IsAdminOrAuthenticatedReadOnly,)
@@ -99,3 +113,58 @@ class FlightViewSet(viewsets.ModelViewSet):
         elif self.action == "retrieve":
             return FlightDetailSerializer
         return FlightSerializer
+
+
+@extend_schema(tags=["Orders"])
+class OrderViewSet(mixins.CreateModelMixin,
+                      mixins.RetrieveModelMixin,
+                      mixins.ListModelMixin,
+                      GenericViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Order.objects.all().filter(user=user)
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return OrderCreateSerializer
+        if self.action == "retrieve":
+            return OrderDetailSerializer
+        if self.action == "cancel":
+            return ReturnBalanceSerializer
+        return OrderSerializer
+
+    @extend_schema(request=None, responses=ReturnBalanceSerializer)
+    @action(detail=True, methods=["post"], url_name="cancel")
+    def cancel(self, request, pk=None):
+        order = self.get_object()
+        today = now().date()
+        user = order.user
+        created_date = order.created_at.date()
+        if created_date + timedelta(days=14) < today:
+            return Response({"detail": _("Order older than 14 days cannot be cancelled")}, status=status.HTTP_403_FORBIDDEN)
+        if order.tickets.all().count() < 1:
+            return Response({"detail": _("No tickets available")}, status=status.HTTP_403_FORBIDDEN)
+        with transaction.atomic():
+            return_balance = 0
+            not_returnable = []
+            for ticket in order.tickets.all():
+                if ticket.flight.status != "PLANNED":
+                    not_returnable.append(ticket)
+                    continue
+                else:
+                    return_balance += ticket.price
+                    ticket.delete()
+            user.balance = user.balance + return_balance
+            user.save()
+        data = {
+            "tickets": not_returnable,
+            "returned_balance": return_balance,
+            "balance": user.balance,
+        }
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
