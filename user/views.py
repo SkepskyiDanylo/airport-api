@@ -191,7 +191,7 @@ class StripeWebhookView(APIView):
                 transaction_amount = (Decimal(amount_paid_cents) / Decimal("100"))
                 transaction_amount = transaction_amount.quantize(Decimal("0.01"),
                                                                  rounding=ROUND_DOWN)
-                user.balance += transaction_amount,
+                user.balance = user.balance + transaction_amount
                 user.save()
                 Transaction.objects.create(
                     user=user,
