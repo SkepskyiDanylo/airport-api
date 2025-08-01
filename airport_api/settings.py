@@ -18,7 +18,7 @@ SUCCESS_URL = os.getenv("SUCCESS_URL")
 CANCEL_URL = os.getenv("CANCEL_URL")
 
 # SMTP
-USE_EMAIL_VERIFICATION = True
+USE_EMAIL_VERIFICATION = os.getenv("USE_EMAIL_VERIFICATION").lower() == "true"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("SMTP_HOST")
 EMAIL_PORT = os.getenv("SMTP_PORT")
