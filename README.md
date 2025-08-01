@@ -1,8 +1,34 @@
 # ✈️ Airport API
 
-**Airport API** is a RESTful web service built with Django and Django REST Framework. It provides user management, flight planning and booking functionality, along with Stripe payment integration.
+**Airport API** is a demonstration project built using Django and Django REST Framework that simulates key features of a flight booking system. It includes essential functionalities such as user registration and JWT authentication, flight scheduling, ticket booking, and integration with the Stripe payment system.
 
-This project is designed to automate air travel operations — from flight scheduling to ticket purchasing.
+The purpose of this project is to showcase my skills and progress in Python backend development, demonstrating how I can build APIs using modern tools and best practices. While its features and architecture are much simpler than those of fully-fledged commercial airline systems, this project lays a solid foundation for future scaling and enhancement.
+
+With additional development and resources, Airport API can be extended into a production-ready application by adding capabilities such as:
+
+- full ticket and boarding pass management,
+
+- integration with external airline systems,
+
+- advanced analytics and reporting,
+
+- more flexible access control and role management,
+
+- support for multiple languages and currencies,
+
+- full-featured flexible email message generation,
+
+- authentication via third-party services (OAuth, social logins),
+
+- integration with accounting systems and invoice generation,
+
+- flexible user profile customization,
+
+- crew availability tracking based on location and working hours,
+
+- and much more.
+
+Therefore, this project not only reflects my current level but also serves as a starting point for creating a real-world product in the air travel domain.
 
 ---
 
