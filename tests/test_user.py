@@ -1,7 +1,9 @@
+import uuid
 from decimal import Decimal
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -188,3 +190,49 @@ class TestAuthenticatedUser(APITestCase):
         self.assertEqual(transaction.amount, Decimal("42.00"))
         self.assertEqual(transaction.status, "FAILED")
         self.assertEqual(transaction.email, self.user.email)
+
+
+class ActivateAccountTestCase(APITestCase):
+
+    def setUp(self):
+        self.user = USER_MODEL.objects.create_user(
+            email=EMAIL,
+            password=PASSWORD,
+            is_active=False
+        )
+        self.uid = str(self.user.id)
+        self.token = default_token_generator.make_token(self.user)
+
+    def test_activate_account_success(self):
+        url = reverse("user:email-activate", kwargs={
+            "uid": self.uid,
+            "token": self.token,
+        })
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+        self.assertEqual(response.data["detail"], "Account activated")
+
+    def test_activate_account_invalid_token(self):
+        url = reverse("user:email-activate", kwargs={
+            'uid': self.uid,
+            'token': "invalid-token",
+        })
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_active)
+        self.assertEqual(response.data["detail"], "Token invalid or expired")
+
+    def test_activate_account_invalid_uid(self):
+        url = reverse("user:email-activate", kwargs={
+            "uid": str(uuid.uuid4()),
+            "token": self.token,
+        })
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["detail"], "Invalid link")

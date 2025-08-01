@@ -68,7 +68,7 @@ class ActivateAccountView(generics.RetrieveAPIView):
             uid = uuid.UUID(uid)
             user = User.objects.get(pk=uid)
         except Exception:
-            return HttpResponseRedirect(
+            return Response(
                 {"detail": _("Invalid link")}, status=status.HTTP_400_BAD_REQUEST
             )
 
