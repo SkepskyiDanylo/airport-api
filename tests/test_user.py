@@ -16,10 +16,12 @@ EMAIL = "test@test.com"
 PASSWORD = "test_password"
 USER_MODEL = get_user_model()
 
-def sample_user():
+def sample_user(email=EMAIL, password=PASSWORD, is_staff=False, is_superuser=False):
     return USER_MODEL.objects.create_user(
-        email=EMAIL,
-        password=PASSWORD,
+        email=email,
+        password=password,
+        is_staff=is_staff,
+        is_superuser=is_superuser,
     )
 
 class TestUnauthenticatedUser(APITestCase):
@@ -98,6 +100,21 @@ class TestUnauthenticatedUser(APITestCase):
             data=payload
         )
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_is_admin_user_viewset(self):
+        url = reverse("user:user-list")
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        user = sample_user()
+        url = reverse("user:user-detail", kwargs={"pk": user.pk})
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        res = self.client.patch(url)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+        res = self.client.put(url)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class TestAuthenticatedUser(APITestCase):
