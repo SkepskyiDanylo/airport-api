@@ -262,3 +262,13 @@ SPECTACULAR_SETTINGS = {
     },
     "COMPONENT_SPLIT_REQUEST": True
 }
+
+LANGUAGES = [
+    ("en", "English"),
+    ("ru", "Russian"),
+    ("ua", "Ukrainian"),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]

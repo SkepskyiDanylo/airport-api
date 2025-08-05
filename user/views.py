@@ -70,15 +70,15 @@ class ActivateAccountView(generics.RetrieveAPIView):
             user = User.objects.get(pk=uid)
         except Exception:
             return Response(
-                {"detail": _("Invalid link")}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": _("Invalid link.")}, status=status.HTTP_400_BAD_REQUEST
             )
 
         if default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
-            return Response({"detail": _("Account activated")}, status=status.HTTP_200_OK)
+            return Response({"detail": _("Account activated.")}, status=status.HTTP_200_OK)
         return Response(
-            {"detail": _("Token invalid or expired")}, status=status.HTTP_400_BAD_REQUEST
+            {"detail": _("Token invalid or expired.")}, status=status.HTTP_400_BAD_REQUEST
         )
 
 
@@ -101,7 +101,7 @@ class PasswordResetView(generics.GenericAPIView):
                 settings.DEFAULT_FROM_EMAIL,
                 [email]
             )
-        return Response({"detail": _("The reset link has been sent")}, status=status.HTTP_200_OK)
+        return Response({"detail": _("The reset link has been sent.")}, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=["Me"])
@@ -113,7 +113,7 @@ class CheckPasswordTokenView(generics.RetrieveAPIView):
             user = User.objects.get(pk=uid)
         except (get_user_model().DoesNotExist, ValueError):
             return Response(
-                {"valid": False, "detail": _("Invalid link")}, status=status.HTTP_400_BAD_REQUEST
+                {"valid": False, "detail": _("Invalid link.")}, status=status.HTTP_400_BAD_REQUEST
             )
 
         valid = default_token_generator.check_token(user, token)
@@ -137,7 +137,7 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
         try:
             user = User.objects.get(pk=uid)
         except User.DoesNotExist:
-            return Response({"detail": _("Invalid uid")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": _("Invalid uid.")}, status=status.HTTP_400_BAD_REQUEST)
 
         if not default_token_generator.check_token(user, token):
             return Response(
@@ -147,7 +147,7 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
 
         user.set_password(password)
         user.save()
-        return Response({"detail": _("Password reset successful")}, status=status.HTTP_200_OK)
+        return Response({"detail": _("Password reset successful.")}, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=["Me"])
@@ -241,10 +241,10 @@ class UserDeposit(APIView):
             amount = str(request.data.get("amount"))
             amount = Decimal(amount).quantize(Decimal("0.01"), rounding=ROUND_DOWN)
         except (TypeError, ValueError, InvalidOperation):
-            return Response({"detail": _("Invalid amount")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": _("Invalid amount.")}, status=status.HTTP_400_BAD_REQUEST)
 
         if amount < Decimal("0.01"):
-            return Response({"detail": _("Amount to low")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": _("Amount to low.")}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             amount_cents = int((amount * 100).to_integral_exact(rounding=ROUND_DOWN))
@@ -272,6 +272,6 @@ class UserDeposit(APIView):
         except stripe.error.StripeError as e:
             logger.warning(f"Stripe error: {e}")
             return Response(
-                {"detail": _("Stripe error")},
+                {"detail": _("Stripe error.")},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )

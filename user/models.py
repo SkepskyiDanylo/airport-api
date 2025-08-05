@@ -47,9 +47,9 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = None
-    email = models.EmailField(_("email address"), unique=True)
+    email = models.EmailField(_("Email address."), unique=True)
     balance = models.DecimalField(
-        _("balance"),
+        _("Balance in dollars."),
         max_digits=10,
         decimal_places=2,
         default=0,
@@ -67,8 +67,8 @@ class User(AbstractUser):
 
 class Transaction(models.Model):
     STATUS_CHOICES = (
-        ("SUCCESS", _("success")),
-        ("FAILURE", _("failure")),
+        ("SUCCESS", _("Success")),
+        ("FAILURE", _("Failure")),
     )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
