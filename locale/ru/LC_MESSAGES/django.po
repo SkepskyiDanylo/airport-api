@@ -1,0 +1,314 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-05 19:54+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
+"(n%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: .\airport\models.py:25
+msgid "Airplane Types"
+msgstr "Типы самолётов"
+
+#: .\airport\models.py:26
+msgid "Airplane Type"
+msgstr "Тип самолёта"
+
+#: .\airport\models.py:40
+msgid "Airbus"
+msgstr "Airbus"
+
+#: .\airport\models.py:41
+msgid "Boeing"
+msgstr "Boeing"
+
+#: .\airport\models.py:42
+msgid "Embraer"
+msgstr "Embraer"
+
+#: .\airport\models.py:43
+msgid "Bombardier"
+msgstr "Bombardier"
+
+#: .\airport\models.py:44
+msgid "ATR"
+msgstr "ATR"
+
+#: .\airport\models.py:45
+msgid "Sukhoi"
+msgstr "Сухой"
+
+#: .\airport\models.py:46
+msgid "COMAC"
+msgstr "COMAC"
+
+#: .\airport\models.py:47
+msgid "McDonnell Douglas"
+msgstr "McDonnell Douglas"
+
+#: .\airport\models.py:48
+msgid "Lockheed"
+msgstr "Lockheed"
+
+#: .\airport\models.py:49
+msgid "Ilyushin"
+msgstr "Ильюшин"
+
+#: .\airport\models.py:50
+msgid "Tupolev"
+msgstr "Туполев"
+
+#: .\airport\models.py:51
+msgid "Antonov"
+msgstr "Антонов"
+
+#: .\airport\models.py:54
+msgid "Active"
+msgstr "Активен"
+
+#: .\airport\models.py:55
+msgid "Inactive"
+msgstr "Неактивен"
+
+#: .\airport\models.py:56
+msgid "Frozen"
+msgstr "Заморожен"
+
+#: .\airport\models.py:77
+msgid "Airplanes"
+msgstr "Самолёты"
+
+#: .\airport\models.py:78
+msgid "Airplane"
+msgstr "Самолёт"
+
+#: .\airport\models.py:90
+msgid "Pilot"
+msgstr "Пилот"
+
+#: .\airport\models.py:91
+msgid "Co-pilot"
+msgstr "Второй пилот"
+
+#: .\airport\models.py:92
+msgid "Flight Attendant"
+msgstr "Бортпроводник"
+
+#: .\airport\models.py:93
+msgid "Engineer"
+msgstr "Инженер"
+
+#: .\airport\models.py:103 .\airport\models.py:104
+msgid "Crew"
+msgstr "Экипаж"
+
+#: .\airport\models.py:149
+msgid "Airports"
+msgstr "Аэропорты"
+
+#: .\airport\models.py:150
+msgid "Airport"
+msgstr "Аэропорт"
+
+#: .\airport\models.py:160
+msgid "Distance in kilometers"
+msgstr "Расстояние в километрах"
+
+#: .\airport\models.py:188
+msgid "Routes"
+msgstr "Маршруты"
+
+#: .\airport\models.py:189
+msgid "Route"
+msgstr "Маршрут"
+
+#: .\airport\models.py:204
+msgid "Flights"
+msgstr "Рейсы"
+
+#: .\airport\models.py:205
+msgid "Flight"
+msgstr "Рейс"
+
+#: .\airport\models.py:251
+msgid "Cancelled"
+msgstr "Отменён"
+
+#: .\airport\models.py:252
+msgid "Paid"
+msgstr "Оплачен"
+
+#: .\airport\models.py:259
+msgid "Orders"
+msgstr "Заказы"
+
+#: .\airport\models.py:260
+msgid "Order"
+msgstr "Заказ"
+
+#: .\airport\models.py:290
+msgid "Tickets"
+msgstr "Билеты"
+
+#: .\airport\models.py:291
+msgid "Ticket"
+msgstr "Билет"
+
+#: .\airport\serializers.py:211
+msgid "There should be at least 3 crew on a flight."
+msgstr "На рейсе должно быть как минимум 3 члена экипажа."
+
+#: .\airport\serializers.py:214
+msgid "There should not be duplicate crew on a flight."
+msgstr "На рейсе не должно быть повторяющихся членов экипажа."
+
+#: .\airport\serializers.py:217
+msgid "Flight must include a PILOT."
+msgstr "Рейс должен включать ПИЛОТА."
+
+#: .\airport\serializers.py:219
+msgid "Flight must include a CO-PILOT."
+msgstr "Рейс должен включать ВТОРОГО ПИЛОТА."
+
+#: .\airport\serializers.py:222
+msgid "Flight must include at least one FLIGHT_ATTENDANT."
+msgstr "Рейс должен включать хотя бы одного БОРТПРОВОДНИКА."
+
+#: .\airport\serializers.py:227
+#, python-brace-format
+msgid "{member} has an expired license."
+msgstr "У {member} просрочена лицензия."
+
+#: .\airport\serializers.py:237
+msgid "Arrival time must be after departure time."
+msgstr "Время прибытия должно быть позже времени отправления."
+
+#: .\airport\serializers.py:242
+#, python-brace-format
+msgid "{member} is not available during this flight."
+msgstr "{member} недоступен во время этого рейса."
+
+#: .\airport\serializers.py:306
+#, python-brace-format
+msgid "Seat {row}-{seat} is already taken for this flight."
+msgstr "Место {row}-{seat} уже занято на этот рейс."
+
+#: .\airport\serializers.py:311
+msgid "Flight is completed or ongoing."
+msgstr "Рейс завершён или уже выполняется."
+
+#: .\airport\serializers.py:313
+msgid "No such seat on this plane."
+msgstr "Такого места нет в этом самолёте."
+
+#: .\airport\serializers.py:342
+#, python-brace-format
+msgid "Duplicate seat {row}-{seat} in this order for the same flight."
+msgstr "Повторяющееся место {row}-{seat} в этом заказе на тот же рейс."
+
+#: .\airport\serializers.py:357
+#, python-brace-format
+msgid "Not enough on balance, {balance}$ < {price}$."
+msgstr "Недостаточно средств на балансе: {balance}$ < {price}$."
+
+#: .\airport\views.py:173
+msgid "Order already cancelled."
+msgstr "Заказ уже отменён."
+
+#: .\airport\views.py:178
+msgid "Order older than 14 days cannot be cancelled"
+msgstr "Нельзя отменить заказ, которому более 14 дней"
+
+#: .\airport\views.py:183
+msgid "No tickets provided."
+msgstr "Билеты не указаны."
+
+#: .\user\admin.py:17
+msgid "Personal info"
+msgstr "Личная информация"
+
+#: .\user\admin.py:19
+msgid "Permissions"
+msgstr "Права доступа"
+
+#: .\user\admin.py:28
+msgid "Important dates"
+msgstr "Важные даты"
+
+#: .\user\models.py:50
+msgid "Email address."
+msgstr "Адрес электронной почты."
+
+#: .\user\models.py:52
+msgid "Balance in dollars."
+msgstr "Баланс в долларах."
+
+#: .\user\models.py:70
+msgid "Success"
+msgstr "Успех"
+
+#: .\user\models.py:71
+msgid "Failure"
+msgstr "Ошибка"
+
+#: .\user\models.py:85
+msgid "Transactions"
+msgstr "Транзакции"
+
+#: .\user\models.py:86
+msgid "Transaction"
+msgstr "Транзакция"
+
+#: .\user\views.py:73 .\user\views.py:116
+msgid "Invalid link."
+msgstr "Неверная ссылка."
+
+#: .\user\views.py:79
+msgid "Account activated."
+msgstr "Аккаунт активирован."
+
+#: .\user\views.py:81
+msgid "Token invalid or expired."
+msgstr "Токен недействителен или просрочен."
+
+#: .\user\views.py:104
+msgid "The reset link has been sent."
+msgstr "Ссылка для сброса отправлена."
+
+#: .\user\views.py:140
+msgid "Invalid uid."
+msgstr "Неверный UID."
+
+#: .\user\views.py:145
+msgid "Token invalid or expired"
+msgstr "Токен недействителен или просрочен"
+
+#: .\user\views.py:150
+msgid "Password reset successful."
+msgstr "Пароль успешно сброшен."
+
+#: .\user\views.py:244
+msgid "Invalid amount."
+msgstr "Неверная сумма."
+
+#: .\user\views.py:247
+msgid "Amount to low."
+msgstr "Слишком малая сумма."
+
+#: .\user\views.py:275
+msgid "Stripe error."
+msgstr "Ошибка Stripe."
