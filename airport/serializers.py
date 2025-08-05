@@ -124,6 +124,7 @@ class RouteListSerializer(serializers.ModelSerializer):
             "stops",
             "distance",
         )
+        read_only_fields = ("id", "distance")
 
 
 class RouteSerializer(serializers.ModelSerializer):
@@ -137,6 +138,7 @@ class RouteSerializer(serializers.ModelSerializer):
             "stops",
             "distance",
         )
+        read_only_fields = ("id","distance")
 
 
 class RouteDetailSerializer(RouteSerializer):
@@ -230,7 +232,7 @@ class FlightSerializer(serializers.ModelSerializer):
         arrival_time = validated_data.get("arrival_time")
 
         if departure_time >= arrival_time:
-            raise serializers.ValidationError(_("Arrival time must be before departure time."))
+            raise serializers.ValidationError(_("Arrival time must be after departure time."))
 
         for member in crew:
             if not member.is_available_in(departure_time, arrival_time):
@@ -297,16 +299,13 @@ class TicketSerializer(serializers.ModelSerializer):
 
         if Ticket.objects.filter(row=row, seat=seat, flight=flight).exists():
             raise serializers.ValidationError(
-                {"seat": f"Seat {row}-{seat} is already taken for this flight."}
+                {"seat": "Seat %(row)s-%(seat)s is already taken for this flight." % {"row": row, "seat": seat}}
             )
         if flight.status != "PLANNED":
-            raise serializers.ValidationError({"flight": _("Flight is completed or planned.")})
+            raise serializers.ValidationError({"flight": _("Flight is completed or ongoing.")})
+        if int(row) > flight.airplane.rows or int(seat) > flight.airplane.seats_in_row:
+            raise serializers.ValidationError({"flight": _("No such seat on this plane.")})
         return data
-
-    def create(self, validated_data):
-        flight = validated_data.get("flight")
-        ticket = Ticket.objects.create(price=flight.price, **validated_data)
-        return ticket
 
 
 class TicketDetailSerializer(TicketSerializer):
@@ -333,8 +332,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             if key in seen_seats:
                 raise serializers.ValidationError({
                     "tickets":
-                        f"Duplicate seat {ticket_data["row"]}-{ticket_data["seat"]} "
-                        f"in this order for the same flight."
+                        "Duplicate seat %(row)s-%(seat)s} "
+                        "in this order for the same flight." % ({"row": ticket_data["row"], "seat": ticket_data["seat"]})
                 })
             seen_seats.add(key)
 
