@@ -222,7 +222,7 @@ class FlightSerializer(serializers.ModelSerializer):
         for member in crew_list:
             if member.is_expired:
                 raise serializers.ValidationError(
-                    _("%(member)s has an expired license.") % {"member": str(member.full_name)}
+                    _("{member} has an expired license.").format(member=member.full_name)
                 )
         return crew
 
@@ -238,8 +238,8 @@ class FlightSerializer(serializers.ModelSerializer):
             if not member.is_available_in(departure_time, arrival_time):
                 raise serializers.ValidationError(
                     _(
-                        "%(member)s is not available during this flight."
-                    ) % {"member": str(member.full_name)}
+                        "{member} is not available during this flight."
+                    ).format(member=member.full_name)
                 )
         return validated_data
 
@@ -332,8 +332,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             if key in seen_seats:
                 raise serializers.ValidationError({
                     "tickets":
-                        "Duplicate seat %(row)s-%(seat)s} "
-                        "in this order for the same flight." % ({"row": ticket_data["row"], "seat": ticket_data["seat"]})
+                        _("Duplicate seat {row}-{seat} "
+                        "in this order for the same flight.").format(row=ticket_data["row"], seat=ticket_data["seat"])
                 })
             seen_seats.add(key)
 
@@ -346,7 +346,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             price = Decimal(order.total_price)
             if user.balance < price:
                 raise serializers.ValidationError(
-                    _("Not enough on balance, %(balance)s$ < %(price)s$.") % {"balance": user.balance, "price": price}
+                    _("Not enough on balance, {balance}$ < {price}$.").format(balance=user.balance, price=price)
                 )
             user.balance = user.balance - price
             user.save()
