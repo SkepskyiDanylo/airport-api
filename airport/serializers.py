@@ -138,7 +138,7 @@ class RouteSerializer(serializers.ModelSerializer):
             "stops",
             "distance",
         )
-        read_only_fields = ("id","distance")
+        read_only_fields = ("id", "distance")
 
 
 class RouteDetailSerializer(RouteSerializer):
@@ -208,16 +208,18 @@ class FlightSerializer(serializers.ModelSerializer):
     def validate_crew(self, crew):
         crew_list = list(crew)
         if len(crew_list) < 3:
-            raise serializers.ValidationError(_("There should be at least 3 crew on a flight"))
+            raise serializers.ValidationError(_("There should be at least 3 crew on a flight."))
         roles = [member.role for member in crew_list]
+        if len(set(crew_list)) < len(crew_list):
+            raise serializers.ValidationError(_("There should not be duplicate crew on a flight."))
 
         if "PILOT" not in roles:
-            raise serializers.ValidationError(_("Flight must include a PILOT"))
+            raise serializers.ValidationError(_("Flight must include a PILOT."))
         if "CO-PILOT" not in roles:
-            raise serializers.ValidationError(_("Flight must include a CO-PILOT"))
+            raise serializers.ValidationError(_("Flight must include a CO-PILOT."))
         if "FLIGHT_ATTENDANT" not in roles:
             raise serializers.ValidationError(_(
-                "Flight must include at least one FLIGHT_ATTENDANT"
+                "Flight must include at least one FLIGHT_ATTENDANT."
             ))
         for member in crew_list:
             if member.is_expired:
@@ -233,7 +235,6 @@ class FlightSerializer(serializers.ModelSerializer):
 
         if departure_time >= arrival_time:
             raise serializers.ValidationError(_("Arrival time must be after departure time."))
-
         for member in crew:
             if not member.is_available_in(departure_time, arrival_time):
                 raise serializers.ValidationError(
@@ -299,7 +300,12 @@ class TicketSerializer(serializers.ModelSerializer):
 
         if Ticket.objects.filter(row=row, seat=seat, flight=flight).exists():
             raise serializers.ValidationError(
-                {"seat": "Seat %(row)s-%(seat)s is already taken for this flight." % {"row": row, "seat": seat}}
+                {
+                    "seat":
+                        _(
+                            "Seat {row}-{seat} is already taken for this flight."
+                        ).format(row=row, seat=seat)
+                }
             )
         if flight.status != "PLANNED":
             raise serializers.ValidationError({"flight": _("Flight is completed or ongoing.")})
@@ -332,8 +338,9 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             if key in seen_seats:
                 raise serializers.ValidationError({
                     "tickets":
-                        _("Duplicate seat {row}-{seat} "
-                        "in this order for the same flight.").format(row=ticket_data["row"], seat=ticket_data["seat"])
+                        _(
+                            "Duplicate seat {row}-{seat} in this order for the same flight."
+                        ).format(row=ticket_data["row"], seat=ticket_data["seat"])
                 })
             seen_seats.add(key)
 
@@ -346,7 +353,9 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             price = Decimal(order.total_price)
             if user.balance < price:
                 raise serializers.ValidationError(
-                    _("Not enough on balance, {balance}$ < {price}$.").format(balance=user.balance, price=price)
+                    _(
+                        "Not enough on balance, {balance}$ < {price}$."
+                    ).format(balance=user.balance, price=price)
                 )
             user.balance = user.balance - price
             user.save()

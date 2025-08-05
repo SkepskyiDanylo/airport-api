@@ -13,7 +13,7 @@ def airplane_save_handler(sender, instance, **kwargs):
     try:
         old_instance = sender.objects.get(pk=instance.pk)
         if old_instance.image and (instance.image != old_instance.image):
-            instance.image.delete(save=False)
+            old_instance.image.delete(save=False)
     except sender.DoesNotExist:
         pass
 

@@ -1,6 +1,7 @@
 from airport_api import settings
 from django.test import TestCase
 
+
 class TestSettings(TestCase):
     REQUIRED_SETTINGS = [
         "SECRET_KEY",

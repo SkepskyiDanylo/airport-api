@@ -16,6 +16,7 @@ EMAIL = "test@test.com"
 PASSWORD = "test_password"
 USER_MODEL = get_user_model()
 
+
 def sample_user(email=EMAIL, password=PASSWORD, is_staff=False, is_superuser=False, balance=0):
     return USER_MODEL.objects.create_user(
         email=email,
@@ -25,12 +26,12 @@ def sample_user(email=EMAIL, password=PASSWORD, is_staff=False, is_superuser=Fal
         balance=balance,
     )
 
+
 class TestUnauthenticatedUser(APITestCase):
     REGISTER_URL = reverse("user:register")
     TOKEN_URL = reverse("user:token_obtain_pair")
     REFRESH_URL = reverse("user:token_refresh")
     TOKEN_VERIFY_URL = reverse("user:token_verify")
-
 
     def test_register(self):
         payload = {

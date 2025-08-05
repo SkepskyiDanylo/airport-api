@@ -33,6 +33,7 @@ stripe.api_key = settings.STRIPE_API_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 logger = logging.getLogger(__name__)
 
+
 @extend_schema(tags=["User"])
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

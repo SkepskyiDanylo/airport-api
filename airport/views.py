@@ -30,6 +30,8 @@ from airport.serializers import (
 )
 from django.utils.translation import gettext as _
 
+from user.serializers import EmptySerializer
+
 
 @extend_schema(tags=["Airplane Type"])
 class AirplaneTypeViewSet(viewsets.ModelViewSet):
@@ -60,8 +62,10 @@ class AirplaneViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
             return AirplaneListSerializer
-        if self.action == "set-image":
+        if self.action == "set_image":
             return AirplaneImageSerializer
+        if self.action == "delete_image":
+            return EmptySerializer
         return AirplaneEditSerializer
 
     @action(detail=True, methods=["post"], url_name="set-image")
@@ -72,6 +76,13 @@ class AirplaneViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_name="delete-image")
+    def delete_image(self, request, pk=None):
+        instance = self.get_object()
+        instance.image = None
+        instance.save()
+        return Response(status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=["Crew"])
@@ -158,14 +169,20 @@ class OrderViewSet(mixins.CreateModelMixin,
         user = order.user
         created_date = order.created_at.date()
         if order.status == "CANCELED":
-            return Response({"detail": _("Order already cancelled.")}, status=status.HTTP_409_CONFLICT)
+            return Response(
+                {"detail": _("Order already cancelled.")},
+                status=status.HTTP_409_CONFLICT
+            )
         if created_date + timedelta(days=14) < today:
             return Response(
                 {"detail": _("Order older than 14 days cannot be cancelled")},
                 status=status.HTTP_400_BAD_REQUEST
             )
         if order.tickets.all().count() < 1:
-            return Response({"detail": _("No tickets available.")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": _("No tickets provided.")},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         with transaction.atomic():
             return_balance = 0
             not_returnable = []

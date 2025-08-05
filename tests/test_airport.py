@@ -1,7 +1,11 @@
+import os
+import tempfile
 from datetime import timedelta
 from decimal import Decimal
 
-from django.test import TestCase
+from PIL import Image
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -9,6 +13,8 @@ from rest_framework.test import APITestCase
 
 from airport.models import AirplaneType, Airplane, Crew, Flight, Airport, Route, Order, Ticket
 from tests.test_user import sample_user
+
+MEDIA_ROOT = tempfile.mkdtemp()
 
 
 class TestPermissions(APITestCase):
@@ -162,18 +168,25 @@ class TestFlightCreation(APITestCase):
             license_number="LIC003",
             license_expiration=now_time + timedelta(days=30),
         )
+        self.crew_engineer = Crew.objects.create(
+            first_name="Oleg",
+            last_name="Ivanov",
+            role="ENGINEER",
+            license_number="LIC004",
+            license_expiration=now_time + timedelta(days=30),
+        )
         self.flight_url = reverse("airport:flight-list")
-
-    def test_create_flight_successful(self):
-        data = {
+        self.data = {
             "airplane": self.airplane.id,
-            "crew": [self.crew_pilot.id, self.crew_copilot.id, self.crew_attendant.id],
             "route": self.route.id,
             "departure_time": self.departure_time.isoformat(),
             "arrival_time": self.arrival_time.isoformat(),
         }
 
-        response = self.client.post(self.flight_url, data, format="json")
+    def test_create_flight_successful(self):
+        self.data["crew"] = [self.crew_pilot.pk, self.crew_copilot.pk, self.crew_attendant.pk]
+
+        response = self.client.post(self.flight_url, self.data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Flight.objects.count(), 1)
@@ -181,17 +194,37 @@ class TestFlightCreation(APITestCase):
         self.assertEqual(flight.crew.count(), 3)
 
     def test_create_flight_crew_less_than_3(self):
-        data = {
-            "airplane": self.airplane.id,
-            "crew": [self.crew_copilot.id, self.crew_attendant.id],
-            "route": self.route.id,
-            "departure_time": self.departure_time.isoformat(),
-            "arrival_time": self.arrival_time.isoformat(),
-        }
-        response = self.client.post(self.flight_url, data, format="json")
+        self.data["crew"] = [self.crew_copilot.pk, self.crew_attendant.pk]
+        response = self.client.post(self.flight_url, self.data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(Flight.objects.count(), 0)
+        self.assertIn("There should be at least 3 crew on a flight", response.content.decode())
+
+    def test_create_flight_with_expired_crew(self):
+        self.crew_pilot.license_expiration = now() - timedelta(days=1)
+        self.crew_pilot.save()
+        self.data["crew"] = [self.crew_pilot.pk, self.crew_copilot.pk, self.crew_attendant.pk]
+        response = self.client.post(self.flight_url, self.data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Flight.objects.count(), 0)
+        self.assertIn(f"{self.crew_pilot.full_name} has an expired license.", response.content.decode())
+
+    def test_create_flight_without_required_role(self):
+        crews = [
+            ([self.crew_engineer.pk, self.crew_copilot.pk, self.crew_attendant.pk], "Flight must include a PILOT."),
+            ([self.crew_pilot.pk, self.crew_engineer.pk, self.crew_attendant.pk], "Flight must include a CO-PILOT."),
+            ([self.crew_pilot.pk, self.crew_copilot.pk, self.crew_engineer.pk], "Flight must include at least one FLIGHT_ATTENDANT.")
+        ]
+        for crew_set, message in crews:
+            self.data["crew"] = crew_set
+
+            response = self.client.post(self.flight_url, self.data, format="json")
+
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(Flight.objects.count(), 0)
+            self.assertIn(message, response.content.decode())
 
 
 class TestUserOrder(APITestCase):
@@ -344,9 +377,9 @@ class TestUserOrder(APITestCase):
         }
         res = self.client.post(self.url, payload, content_type="application/json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn(f"The fields row, seat, flight must make a unique set.", res.content.decode())
+        self.assertIn("The fields row, seat, flight must make a unique set.", res.content.decode())
 
-    def test_duplicate_ticket(self):
+    def test_order_duplicate_ticket(self):
         payload = {
             "tickets": [
                 {
@@ -363,4 +396,83 @@ class TestUserOrder(APITestCase):
         }
         res = self.client.post(self.url, payload, content_type="application/json")
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn(f"Duplicate seat 1-1", res.content.decode())
+        self.assertIn("Duplicate seat 1-1", res.content.decode())
+
+
+@override_settings(MEDIA_ROOT=MEDIA_ROOT)
+class AirplaneImageTest(APITestCase):
+
+    def setUp(self):
+        self.user = sample_user(is_staff=True, is_superuser=True)
+        self.client.force_authenticate(self.user)
+        self.airplane_type = AirplaneType.objects.create(name="Boeing 737")
+        airplane_type = AirplaneType.objects.create(name="Airplane")
+        self.airplane = Airplane.objects.create(
+            type=airplane_type,
+            tail_number="123",
+            manufacturer="AIRBUS",
+            model="123",
+            rows=10,
+            seats_in_row=10,
+        )
+        self.url = reverse("airport:airplane-set-image", kwargs={"pk": self.airplane.pk})
+
+    def generate_test_image(self):
+        image = Image.new("RGB", (100, 100), color="red")
+        temp_file = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
+        image.save(temp_file, format="JPEG")
+        temp_file.seek(0)
+        return temp_file
+
+    def test_set_image_and_delete(self):
+        temp_image = self.generate_test_image()
+        with open(temp_image.name, "rb") as img:
+            uploaded = SimpleUploadedFile("test.jpg", img.read(), content_type="image/jpeg")
+
+        response = self.client.post(self.url, {"image": uploaded}, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.airplane.refresh_from_db()
+        image_path = self.airplane.image.path
+        self.assertTrue(os.path.isfile(image_path))
+
+        url = reverse("airport:airplane-delete-image", kwargs={"pk": self.airplane.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.airplane.refresh_from_db()
+        self.assertFalse(os.path.isfile(image_path))
+
+    def test_image_changed(self):
+        temp_image = self.generate_test_image()
+        with open(temp_image.name, "rb") as img:
+            uploaded = SimpleUploadedFile("test1.jpg", img.read(), content_type="image/jpeg")
+
+        self.client.post(self.url, {"image": uploaded}, format="multipart")
+
+        self.airplane.refresh_from_db()
+        image_path1 = self.airplane.image.path
+
+        with open(temp_image.name, "rb") as img:
+            uploaded = SimpleUploadedFile("test2.jpg", img.read(), content_type="image/jpeg")
+        self.client.post(self.url, {"image": uploaded}, format="multipart")
+        self.airplane.refresh_from_db()
+        image_path2 = self.airplane.image.path
+
+        self.assertFalse(os.path.isfile(image_path1))
+        self.assertTrue(os.path.isfile(image_path2))
+        self.airplane.image.delete()
+
+    def test_image_airplane_deleted(self):
+        temp_image = self.generate_test_image()
+        with open(temp_image.name, "rb") as img:
+            uploaded = SimpleUploadedFile("test1.jpg", img.read(), content_type="image/jpeg")
+
+        self.client.post(self.url, {"image": uploaded}, format="multipart")
+
+        self.airplane.refresh_from_db()
+        image_path = self.airplane.image.path
+        url = reverse("airport:airplane-detail", kwargs={"pk": self.airplane.pk})
+        res = self.client.delete(url)
+        print(res.content.decode())
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(os.path.isfile(image_path))
