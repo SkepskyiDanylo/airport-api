@@ -16,12 +16,13 @@ EMAIL = "test@test.com"
 PASSWORD = "test_password"
 USER_MODEL = get_user_model()
 
-def sample_user(email=EMAIL, password=PASSWORD, is_staff=False, is_superuser=False):
+def sample_user(email=EMAIL, password=PASSWORD, is_staff=False, is_superuser=False, balance=0):
     return USER_MODEL.objects.create_user(
         email=email,
         password=password,
         is_staff=is_staff,
         is_superuser=is_superuser,
+        balance=balance,
     )
 
 class TestUnauthenticatedUser(APITestCase):
