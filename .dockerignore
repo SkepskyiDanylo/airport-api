@@ -1,0 +1,6 @@
+.venv
+.coverage
+.flake8
+db.sqlite3
+LICENSE
+README.md

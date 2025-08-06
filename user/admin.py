@@ -1,3 +1,59 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import Group
+from django.utils.translation import gettext as _
 
-# Register your models here.
+from user.models import User, Transaction
+
+admin.site.unregister(Group)
+
+
+@admin.register(User)
+class UserAdmin(UserAdmin):
+    add_form_template = "admin/auth/user/add_form.html"
+    change_user_password_template = None
+    fieldsets = (
+        (None, {"fields": ("email", "password")}),
+        (_("Personal info"), {"fields": ("first_name", "last_name", "balance")}),
+        (
+            _("Permissions"),
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                ),
+            },
+        ),
+        (_("Important dates"), {"fields": ("last_login", "date_joined")}),
+    )
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes":
+                    ("wide",),
+                "fields":
+                    ("email", "usable_password", "password1", "password2"),
+            },
+        ),
+    )
+    list_display = ("email", "first_name", "last_name", "is_staff")
+    list_filter = ("is_staff", "is_superuser", "is_active")
+    search_fields = ("username", "first_name", "last_name", "email")
+    ordering = ("email",)
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "status",
+        "amount",
+    )
+    list_filter = (
+        "user",
+        "status"
+    )
+    search_fields = ("amount",)
+    readonly_fields = ("id",)
