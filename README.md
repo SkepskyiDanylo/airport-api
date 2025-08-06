@@ -1,5 +1,26 @@
 # ✈️ Airport API
 
+---
+
+## 📑 Table of Contents
+
+- [Overview](#-overview)
+- [Environment Variables](#-environment-variables)
+- [Simple Installation](#-simple-installation)
+- [Docker Installation](#-docker-installation)
+- [Project Structure](#-project-structure)
+- [API Examples](#-api-examples)
+- [API Documentation](#-api-documentation)
+- [Translation](#-translation)
+- [Email Verification](#-email-verification)
+- [Stripe](#-stripe-integration)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Contact](#-contact)
+---
+
+## 🎯 Overview
+
 **Airport API** is a demonstration project built using Django and Django REST Framework that simulates key features of a flight booking system. It includes essential functionalities such as user registration and JWT authentication, flight scheduling, ticket booking, and integration with the Stripe payment system.
 
 The purpose of this project is to showcase my skills and progress in Python backend development, demonstrating how I can build APIs using modern tools and best practices. While its features and architecture are much simpler than those of fully-fledged commercial airline systems, this project lays a solid foundation for future scaling and enhancement.
@@ -58,9 +79,69 @@ Therefore, this project not only reflects my current level but also serves as a 
 
 ---
 
-## ⚙️ Installation
+## 🔐 Environment Variables
 
+To run this project, you will need to add the following environment variables to your .env file
+
+### Django:
+
+`DEBUG`
+
+`SECRET_KEY`
+
+### Stripe:
+
+`STRIPE_API_KEY` 
+
+`STRIPE_WEBHOOK_SECRET`
+
+`SUCCESS_URL`
+
+`CANCEL_URL`
+
+### SMTP:
+
+`USE_EMAIL_VERIFICATION`
+
+`SMTP_PASSWORD`
+
+`SMTP_HOST`
+
+`SMTP_PORT`
+
+`SMTP_HOST_USER`
+
+`SMTP_DEFAULT_FROM_EMAIL`
+
+`FRONTEND_URL`
+
+### Postgres:
+
+`POSTGRES_PASSWORD`
+
+`POSTGRES_USER`
+
+`POSTGRES_DB`
+
+`POSTGRES_HOST`
+
+`POSTGRES_PORT`
+
+`PGDATA`
+
+Example file with short explanation you can find in *[env.example](env.example)*
+
+---
+
+## ⚙️ Simple Installation
+
+[Fork](https://github.com/SkepskyiDanylo/airport-api/fork) the repository
+
+Create a `.env` file with the [required](#-environment-variables) environment variables
+
+▶️ Install and configure the project:
 ```bash
+
 git clone https://github.com/your-username/airport-api.git
 cd airport-api
 python -m venv venv
@@ -68,27 +149,68 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Create a `.env` file with the required environment variables:
+▶️ Run the Project:
 
-```env
-DEBUG=True
-SECRET_KEY=secret key
+```bash
 
-# Stripe payments
-STRIPE_API_KEY=api key
-STRIPE_WEBHOOK_SECRET=webhook secret
-SUCCESS_URL=your_url.com/success
-CANCEL_URL=your_url.com/fail
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
 
-# Gmail SMTP
-USE_EMAIL_VERIFICATION=True
-SMTP_PASSWORD=your password
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_HOST_USER=your@email.com
-SMTP_DEFAULT_FROM_EMAIL=your@email.com
-FRONTEND_URL=your_url.com
+▶️ (Optional) Load database fixture:
+```bash
 
+python manage.py loaddata data.yaml
+```
+
+️▶️  To use translation you have to install gettext > 0.25:
+
+1. [Windows](https://github.com/mlocati/gettext-iconv-windows/releases)
+2. [Linux](https://www.drupal.org/docs/8/modules/potion/how-to-install-setup-gettext) (Usually preinstalled)
+
+Then run 
+```bash
+
+python manage.py compilemessages
+```
+
+---
+
+## 🐳 Docker Installation
+
+▶ [Fork](https://github.com/SkepskyiDanylo/airport-api/fork) the repository
+
+Create a `.env` file with the [required](#-environment-variables) environment variables
+
+▶️ Build and start the containers:
+
+```bash
+
+docker-compose build
+docker-compose up -d
+```
+
+▶️ (Optional) Load database fixture:
+
+```bash
+
+docker exec -it airport-api-airport-1 python manage.py loaddata data.yaml
+```
+
+▶️ To stop containers:
+
+```bash
+
+docker-compose down
+```
+---
+
+## 🧪 Running Tests
+
+```bash
+
+python manage.py test tests
 ```
 
 ---
@@ -104,48 +226,10 @@ FRONTEND_URL=your_url.com
    └──...
 ├── .flake8
 ├── manage.py
+├── Dockerfile
+├── docker-compose.yaml
 └── README.md
 ```
-
----
-
-## ▶️ Running the Project
-
-```bash
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
-
----
-
-## 🧪 Running Tests
-
-```bash
-python manage.py test tests
-```
-
----
-
-## 📄 API Documentation
-
-- Swagger: [`/swagger/`](http://localhost:8000/swagger/)
-- ReDoc: [`/redoc/`](http://localhost:8000/redoc/)
-
----
-
-## 🔐 Authentication & Access
-
-- JWT-based authentication via `djangorestframework-simplejwt`
-- Permissions managed using `IsAuthenticated`, `IsAdmin`, `IsAdminOrAuthenticatedReadOnly` etc.
-- Email-based account activation and password reset
-
----
-
-## 💳 Stripe Integration
-
-- Stripe Checkout session creation
-- Webhook handling for payment events
 
 ---
 
@@ -177,8 +261,77 @@ Content-Type: application/json
     }
   ]
 }
+```
 
+---
 
+## 📄 API Documentation
+
+You can see all `URIs` by starting the project and using:
+
+- Swagger: [`/swagger/`](http://localhost:8000/swagger/)
+- ReDoc: [`/redoc/`](http://localhost:8000/redoc/)
+
+---
+
+## 🔐 Authentication & Access
+
+- JWT-based authentication via `djangorestframework-simplejwt`
+- Permissions managed using `IsAuthenticated`, `IsAdmin`, `IsAdminOrAuthenticatedReadOnly` etc.
+- Email-based account activation and password reset
+- Reworked User model to use `email` instead of `username`
+---
+
+## ✉️ Email Verification
+
+To be able to use password reset via email you have to set `USE_EMAIL_VERIFICATION` as `True` in [.env](#-environment-variables)
+
+If `USE_EMAIL_VERIFICATION` is true, after registration email will be sent to user email to activate account.
+
+---
+
+## 🌐 Translation
+
+To add new messages to translation use `gettext` or `gettext_lazy`
+
+1. After adding new messages:
+    ```bash
+   python manage.py makemessages -l ru
+   python manage.py makemessages -l ua
+   ```
+   Then add translation to messages in `.po` files: [ua](locale/ua/LC_MESSAGES/django.po), [ru](locale/ru/LC_MESSAGES/django.po)
+2. To add new language:
+    ```bash
+   python manage.py makemessages -l language
+   ```
+   Then add translation to new `.po` file
+
+   Then add new language to [settings.py](airport_api/settings.py)
+    ```python
+   ...
+   LANGUAGES = [
+    ("en", "English"),
+    ("ru", "Russian"),
+    ("ua", "Ukrainian"),
+    ("short_code", "Full name") # <- Add your language here
+    ]
+   ...
+   ```
+---
+
+## 💳 Stripe Integration
+
+- Stripe Checkout session creation
+- Webhook handling for payment events
+
+```https
+POST /api/v1/user/deposit/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJh...
+Content-Type: application/json
+
+{
+  "amount": value
+}
 ```
 
 ---
