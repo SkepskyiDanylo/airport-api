@@ -42,7 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         if settings.USE_EMAIL_VERIFICATION:
             user.is_active = False
-            user.save()
+        user.save()
         return user
 
     def update(self, instance, validated_data):
